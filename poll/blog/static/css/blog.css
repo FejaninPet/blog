@@ -2,6 +2,7 @@ body {
     margin:0;
     padding:0;
     font-family:helvetica, sans-serif;
+    background-color:#556B2F;
 }
 
 a {
@@ -30,7 +31,7 @@ h2 {
     float:right;
     width:30%;
     padding:10px;
-    background:#efefef;
+    background:#808000;
     height:100%;
 }
 
@@ -45,6 +46,10 @@ p.date {
 .pagination {
     margin:40px 0;
     font-weight:bold;
+}
+
+.pagin_a {
+    color:#778899;
 }
 
 /* forms */
