@@ -5,34 +5,41 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
 from .forms import EmailPostForm, CommentForm
 from django.views.decorators.http import require_POST
+from taggit.models import Tag
+from django.db.models import Count
 
 
-# def post_list(request):
-#     post_list = Post.published.all()
-#     # постраничная разбивка
-#     paginator = Paginator(post_list, 3)  # кол-во объектов
-#     page_number = request.GET.get('page', 1)
-#     try:
-#         posts = paginator.page(page_number)
-#     except PageNotAnInteger:
-#         # если page_number не цлое число, то вернуть первую страницу
-#         posts = paginator.page(1)
-#     except EmptyPage:
-#         # если вызванная страница находится за пределами существующего диапазона,
-#         # то вернуть последнюю страницу
-#         posts = paginator.page(paginator.num_pages)
-#     return render(request, 'blog/post/list.html', {'posts': posts})
+def post_list(request, tag_slug=None):
+    post_list = Post.published.all()
+    tag = None
+    if tag_slug:
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        post_list = post_list.filter(tags__in=[tag])
+    # постраничная разбивка
+    paginator = Paginator(post_list, 3)  # кол-во объектов
+    page_number = request.GET.get('page', 1)
+    try:
+        posts = paginator.page(page_number)
+    except PageNotAnInteger:
+        # если page_number не цлое число, то вернуть первую страницу
+        posts = paginator.page(1)
+    except EmptyPage:
+        # если вызванная страница находится за пределами существующего диапазона,
+        # то вернуть последнюю страницу
+        posts = paginator.page(paginator.num_pages)
+    return render(request, 'blog/post/list.html',
+                  {'posts': posts, 'tag': tag})
 
 
-class PostListView(ListView):
-    """
-    Альтернативное представление списка постов
-    """
-    queryset = Post.published.all()
-    context_object_name = 'posts'  # если необъявить, в шаблон будет передана переменная object_list
-    # context_object_name будет передан в шаблон по имени page_obj
-    paginate_by = 3
-    template_name = 'blog/post/list.html'
+# class PostListView(ListView):
+#     """
+#     Альтернативное представление списка постов
+#     """
+#     queryset = Post.published.all()
+#     context_object_name = 'posts'  # если необъявить, в шаблон будет передана переменная object_list
+#     # context_object_name будет передан в шаблон по имени page_obj
+#     paginate_by = 3
+#    template_name = 'blog/post/list.html'
 
 
 def post_detail(request, year, month, day, slug):
@@ -46,8 +53,14 @@ def post_detail(request, year, month, day, slug):
     comments = post.comments.filter(active=True)
     # Форма для комментариея пользователями
     form = CommentForm()
+    # Список схожих постов
+    # QuerySet имеет метод values_list, к-ый кортежи со значениями заданных полей; flat=True ==>
+    # преобразует из [(1,), (2,), ...] => [1, 2, ...]
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_posts = Post.published.filter(tags__in=post_tags_ids).exclude(id=post.id)
+    similar_posts = similar_posts.annotate(same_tags=Count('tags')).order_by('-same_tags', '-publish')[:4]
     return render(request, 'blog/post/detail.html',
-                  {'post': post, 'comments': comments, 'form': form})
+                  {'post': post, 'comments': comments, 'form': form, 'similar_posts': similar_posts})
 
 
 def post_share(request, post_id):

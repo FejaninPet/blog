@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block content %}
+<a href="{% url 'blog:post_list' %}">Вернуться ко всем постам</a>
     <h1>{{ post.title }}</h1>
     <p class="date">
       Опубликовано: {{ post.publish }}. Автор: {{ post.author }}.
@@ -15,6 +16,14 @@
             Поделиться постом.
         </a>
     </p>
+    <h2>Похожие посты</h2>
+    {% for post in similar_posts %}
+        <p>
+            <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+        </p>
+    {% empty %}
+        Здесь пока нет похожих постов
+    {% endfor %}
     <h2>
         {{ comments.count }} комментариев.
     </h2>
