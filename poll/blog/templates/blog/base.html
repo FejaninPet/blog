@@ -1,3 +1,4 @@
+{% load blog_tags %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="ru">
@@ -13,7 +14,12 @@
     </div>
     <div id="sidebar">
         <h2>Мой блог</h2>
-        <p>Это мой блог.</p>
+        <p>
+            Это мой блог.
+            Чтобы написать {% total_posts %} постов, потребовалось очень много времени. Цените это!
+        </p>
+        <h3>Последние посты</h3>
+        {% show_latest_posts 3 %}
     </div>
 </body>
 </html>
