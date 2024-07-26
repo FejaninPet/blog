@@ -5,6 +5,9 @@
 
 {% block content %}
   <h1>Мой блог</h1>
+  <h2>
+    <a href="{% url 'blog:post_search' %}">Поиск по сайту &#128269;</a>
+  </h2>
   {% if tag %}
     <h2>Тэги поста {{ tag.name }}</h2>
   {% endif %}
